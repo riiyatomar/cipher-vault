@@ -1,9 +1,3 @@
-# ============================================================
-# CipherVault - Start Backend (Local Development)
-# Usage:  Open PowerShell, then run:
-#         cd c:\Users\HP\CipherVault
-#         powershell -ExecutionPolicy Bypass -File start-backend.ps1
-# ============================================================
 
 Write-Host ""
 Write-Host "======================================" -ForegroundColor Cyan

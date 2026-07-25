@@ -1,8 +1,4 @@
-"""
-CipherVault — Local Development Runner
-Runs ALL backend services locally using SQLite (no Docker/PostgreSQL/Redis needed).
-Usage:  python run_local.py
-"""
+
 import os
 import sys
 import subprocess
