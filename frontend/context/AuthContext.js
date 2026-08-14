@@ -6,7 +6,7 @@
  * Works seamlessly in both live (backend) and demo (localStorage) modes.
  */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authAPI, isDemoMode } from '@/lib/api';
+import { authAPI } from '@/lib/api';
 
 const AuthContext = createContext(null);
 

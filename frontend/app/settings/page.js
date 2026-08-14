@@ -228,7 +228,7 @@ export default function SettingsPage() {
               </div>
 
               <button onClick={() => setStep(2)} className="btn-primary w-full py-3">
-                I've scanned the code — Verify
+                I&apos;ve scanned the code — Verify
               </button>
             </motion.div>
           )}

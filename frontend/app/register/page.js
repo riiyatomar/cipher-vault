@@ -62,7 +62,7 @@ export default function RegisterPage() {
           <p className="text-surface-400">Start protecting your documents in seconds</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass-card p-8 space-y-5">
+        <form onSubmit={handleSubmit} autoComplete="off" className="glass-card p-8 space-y-5">
           <div>
             <label className="block text-sm font-medium text-surface-300 mb-2">Username</label>
             <div className="relative">
@@ -71,9 +71,10 @@ export default function RegisterPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="johndoe"
+                placeholder="Enter your username"
                 required
                 minLength={3}
+                autoComplete="off"
                 className="input-field pl-11"
               />
             </div>
@@ -89,6 +90,7 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
+                autoComplete="off"
                 className="input-field pl-11"
               />
             </div>
@@ -105,6 +107,7 @@ export default function RegisterPage() {
                 placeholder="Min. 8 characters"
                 required
                 minLength={8}
+                autoComplete="new-password"
                 className="input-field pl-11"
               />
             </div>
@@ -121,6 +124,7 @@ export default function RegisterPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repeat password"
                 required
+                autoComplete="new-password"
                 className="input-field pl-11"
               />
             </div>

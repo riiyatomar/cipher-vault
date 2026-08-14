@@ -39,7 +39,7 @@ SERVICES = [
     {"name": "Encryption Service",  "dir": "encryption-service", "port": 8003},
     {"name": "Storage Service",     "dir": "storage-service",    "port": 8004},
     {"name": "Audit Service",       "dir": "audit-service",      "port": 8005},
-    {"name": "API Gateway",         "dir": "api-gateway",        "port": 8000},
+    {"name": "API Gateway",         "dir": "api-gateway",        "port": 8008},
 ]
 
 print("=" * 60)
@@ -68,7 +68,7 @@ print()
 print("=" * 60)
 print("  All services are starting up!")
 print()
-print("  API Gateway:        http://localhost:8000")
+print("  API Gateway:        http://localhost:8008")
 print("  Auth Service:       http://localhost:8001")
 print("  Document Service:   http://localhost:8002")
 print("  Encryption Service: http://localhost:8003")

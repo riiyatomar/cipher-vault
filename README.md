@@ -53,3 +53,7 @@ The frontend is a Next.js application located in the `frontend/` directory.
 The backend services rely on environment variables. 
 - You can copy the contents of `.env.example` into a new `.env` file in the project root if you need to override the default configurations.
 - The Next.js frontend also has a `.env.local` file inside the `frontend/` directory for its own specific configurations.
+
+
+#local host frontend: 3000
+api's: 8008

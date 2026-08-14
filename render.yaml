@@ -1,0 +1,92 @@
+# =============================================================================
+# CipherVault — Render Blueprint
+# Deploy with: render blueprint sync
+# Docs: https://docs.render.com/infrastructure-as-code
+# =============================================================================
+
+services:
+  # ── Backend (Unified FastAPI Server) ──────────────────────────────────────
+  - type: web
+    name: ciphervault-api
+    runtime: python
+    region: oregon
+    plan: free               # Change to "starter" ($7/mo) for always-on
+    buildCommand: |
+      pip install -r requirements.txt
+      # Install libmagic for python-magic on Linux
+      apt-get update && apt-get install -y libmagic1 || true
+    startCommand: gunicorn server:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /api/health
+    envVars:
+      # Database (auto-populated from Render PostgreSQL)
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ciphervault-db
+          property: connectionString
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: ciphervault-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: ciphervault-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: ciphervault-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: ciphervault-db
+          property: port
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: ciphervault-db
+          property: database
+
+      # JWT (generate a strong secret!)
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+      - key: JWT_REFRESH_TOKEN_EXPIRE_DAYS
+        value: "7"
+
+      # Encryption
+      - key: MASTER_ENCRYPTION_KEY
+        generateValue: true
+
+      # CORS — set to your Vercel frontend URL after deploying
+      - key: CORS_ORIGINS
+        value: "https://your-app.vercel.app,http://localhost:3000"
+
+      # File settings
+      - key: UPLOAD_DIR
+        value: /opt/render/project/storage/uploads
+      - key: MAX_FILE_SIZE_MB
+        value: "20"
+      - key: FILE_EXPIRY_HOURS
+        value: "24"
+
+      # Skip Redis on free tier (rate limiting disabled)
+      - key: SKIP_REDIS
+        value: "true"
+
+      # Python path for shared modules
+      - key: PYTHONPATH
+        value: /opt/render/project/src/services
+
+    disk:
+      name: ciphervault-storage
+      mountPath: /opt/render/project/storage
+      sizeGB: 1               # Adjust based on expected upload volume
+
+  # ── PostgreSQL Database ──────────────────────────────────────────────────
+databases:
+  - name: ciphervault-db
+    plan: free                 # 1GB, 90-day expiry. Use "starter" ($7/mo) for persistent.
+    region: oregon
+    databaseName: ciphervault
+    user: ciphervault

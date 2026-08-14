@@ -5,16 +5,10 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { isDemoMode } from '@/lib/api';
 import { logActivity } from '@/app/activity/page';
 import toast from 'react-hot-toast';
-import { HiOutlineMail, HiOutlineLockClosed, HiOutlineShieldCheck, HiOutlineLightningBolt } from 'react-icons/hi';
+import { HiOutlineMail, HiOutlineLockClosed, HiOutlineShieldCheck } from 'react-icons/hi';
 import PasswordStrength from '@/components/PasswordStrength';
-
-const DEMO_CREDENTIALS = {
-  email: 'demo@ciphervault.com',
-  password: 'Demo@1234',
-};
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -38,12 +32,6 @@ export default function LoginPage() {
     }
   };
 
-  const fillDemoCredentials = () => {
-    setEmail(DEMO_CREDENTIALS.email);
-    setPassword(DEMO_CREDENTIALS.password);
-    toast.success('Demo credentials filled! Click Sign In.');
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-grid">
       {/* Glow */}
@@ -65,7 +53,7 @@ export default function LoginPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="glass-card p-8 space-y-5">
+        <form onSubmit={handleSubmit} autoComplete="off" className="glass-card p-8 space-y-5">
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Email</label>
             <div className="relative">
@@ -76,6 +64,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
+                autoComplete="off"
                 className="input-field pl-11"
               />
             </div>
@@ -91,6 +80,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                autoComplete="current-password"
                 className="input-field pl-11"
               />
             </div>
@@ -111,25 +101,6 @@ export default function LoginPage() {
               'Sign In'
             )}
           </button>
-
-          {/* Demo Quick-Fill */}
-          <button
-            type="button"
-            onClick={fillDemoCredentials}
-            className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all"
-            style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-primary)',
-              color: 'var(--brand-primary)',
-            }}
-          >
-            <HiOutlineLightningBolt className="w-4 h-4" />
-            Use Demo Account
-          </button>
-
-          <div className="text-center px-3 py-2 rounded-lg" style={{ background: 'var(--bg-card)', color: 'var(--text-dim)', fontSize: '11px' }}>
-            Demo: <strong style={{ color: 'var(--text-secondary)' }}>demo@ciphervault.com</strong> / <strong style={{ color: 'var(--text-secondary)' }}>Demo@1234</strong>
-          </div>
         </form>
 
         <p className="text-center text-sm mt-6" style={{ color: 'var(--text-muted)' }}>

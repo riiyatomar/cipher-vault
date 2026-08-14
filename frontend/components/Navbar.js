@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { isDemoMode } from '@/lib/api';
+
 import ThemeSelector from '@/components/ThemeSelector';
 import { useState, useEffect } from 'react';
 import {
@@ -24,8 +24,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { isAuthenticated, user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [demo, setDemo] = useState(false);
-  useEffect(() => { setDemo(isDemoMode()); }, []);
+
 
   return (
     <motion.nav
@@ -44,11 +43,6 @@ export default function Navbar() {
             <span className="font-bold text-lg tracking-tight" style={{ color: 'var(--text-primary)' }}>
               Cipher<span style={{ color: 'var(--brand-primary)' }}>Vault</span>
             </span>
-            {demo && (
-              <span className="px-2 py-0.5 rounded-md bg-accent-amber/20 text-accent-amber text-[10px] font-bold uppercase tracking-wider">
-                Demo
-              </span>
-            )}
           </Link>
 
           {/* Desktop Nav */}

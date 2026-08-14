@@ -114,6 +114,10 @@ async def gateway_middleware(request: Request, call_next):
     """Auth validation + rate limiting for all requests."""
     path = request.url.path
 
+    # Skip CORS preflight OPTIONS requests — let CORS middleware handle them
+    if request.method == "OPTIONS":
+        return await call_next(request)
+
     # Skip public routes
     if path in PUBLIC_ROUTES or path.startswith("/metrics"):
         return await call_next(request)
