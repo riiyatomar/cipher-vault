@@ -46,6 +46,19 @@ export default function SharePage() {
       }
     }
     if (docId) loadDoc();
+
+    // If an older link with embedded hash was opened, prefill the password field
+    if (typeof window !== 'undefined' && window.location.hash) {
+      try {
+        const hash = window.location.hash.slice(1);
+        const decoded = JSON.parse(atob(hash));
+        if (decoded?.pwd) {
+          setPassword(decoded.pwd);
+        }
+      } catch {
+        // ignore invalid hash
+      }
+    }
   }, [docId]);
 
   const handleDecrypt = async (e) => {
