@@ -52,6 +52,7 @@ class Document(Base):
     file_size = Column(BigInteger, nullable=False)
     mime_type = Column(String(100), nullable=False)
     encryption_algorithm = Column(String(50), default="AES-256-GCM")
+    iterations = Column(Integer, default=600000)
     salt = Column(String(255))
     iv = Column(String(255))
     upload_time = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

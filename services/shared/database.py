@@ -63,3 +63,20 @@ async def init_db():
             if attempt == max_retries:
                 raise e
             await asyncio.sleep(2)
+
+    # Auto-migrate: add iterations column if it doesn't exist
+    from sqlalchemy import text, inspect as sa_inspect
+    try:
+        async with engine.begin() as conn:
+            def _check_col(sync_conn):
+                insp = sa_inspect(sync_conn)
+                cols = [c["name"] for c in insp.get_columns("documents")]
+                return "iterations" in cols
+            has_col = await conn.run_sync(_check_col)
+            if not has_col:
+                if USE_SQLITE:
+                    await conn.execute(text("ALTER TABLE documents ADD COLUMN iterations INTEGER DEFAULT 600000"))
+                else:
+                    await conn.execute(text("ALTER TABLE documents ADD COLUMN iterations INTEGER DEFAULT 600000"))
+    except Exception:
+        pass  # table may not exist yet on first run

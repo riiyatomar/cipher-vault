@@ -77,6 +77,7 @@ async def upload_document(
     salt: str = Form(""),
     iv: str = Form(""),
     file_hash: str = Form(""),
+    iterations: int = Form(600000),
     db: AsyncSession = Depends(get_db),
 ):
     """Upload an encrypted document."""
@@ -161,6 +162,7 @@ async def upload_document(
         mime_type=content_type,
         salt=salt,
         iv=iv,
+        iterations=iterations,
         expiry_time=datetime.now(timezone.utc) + timedelta(hours=FILE_EXPIRY_HOURS),
     )
     db.add(doc)
@@ -205,6 +207,7 @@ async def list_documents(request: Request, db: AsyncSession = Depends(get_db)):
             "status": d.status,
             "download_count": d.download_count,
             "encryption_algorithm": d.encryption_algorithm,
+            "iterations": d.iterations or 600000,
         }
         for d in docs
     ]
@@ -236,7 +239,7 @@ async def get_shared_document(document_id: str, db: AsyncSession = Depends(get_d
         "file_hash": doc.file_hash,
         "salt": doc.salt,
         "iv": doc.iv,
-        "iterations": 600000,
+        "iterations": doc.iterations or 600000,
         "upload_time": doc.upload_time.isoformat() if doc.upload_time else "",
         "expiry_time": doc.expiry_time.isoformat() if doc.expiry_time else "",
         "status": doc.status,
@@ -311,6 +314,7 @@ async def get_document(document_id: str, request: Request, db: AsyncSession = De
         "file_hash": doc.file_hash,
         "salt": doc.salt,
         "iv": doc.iv,
+        "iterations": doc.iterations or 600000,
         "upload_time": doc.upload_time.isoformat(),
         "expiry_time": doc.expiry_time.isoformat(),
         "status": doc.status,
