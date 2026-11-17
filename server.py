@@ -113,8 +113,11 @@ async def lifespan(app: FastAPI):
     logger.info("CipherVault unified server starting")
 
     # Initialize database tables
-    await init_db()
-    logger.info("Database initialized")
+    try:
+        await init_db()
+        logger.info("Database initialized")
+    except Exception as e:
+        logger.error(f"Database initialization error: {e}")
 
     # Redis (optional — for rate limiting)
     if not SKIP_REDIS and REDIS_URL:

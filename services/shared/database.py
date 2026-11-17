@@ -51,5 +51,15 @@ async def get_db() -> AsyncSession:
 
 async def init_db():
     """Create tables (used for development; production uses migrations)."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    import shared.models  # ensure models are registered on Base.metadata
+    import asyncio
+    max_retries = 5
+    for attempt in range(1, max_retries + 1):
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            break
+        except Exception as e:
+            if attempt == max_retries:
+                raise e
+            await asyncio.sleep(2)

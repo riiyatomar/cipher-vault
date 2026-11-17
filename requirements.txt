@@ -25,7 +25,6 @@ httpx==0.27.0
 
 # ── File Handling ──────────────────────────────────────────────────────────
 python-multipart==0.0.9
-python-magic==0.4.27
 
 # ── Validation & Config ───────────────────────────────────────────────────
 pydantic[email]==2.6.1

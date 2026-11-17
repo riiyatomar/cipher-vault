@@ -17,10 +17,27 @@ class DatabaseConfig:
 
     @property
     def url(self) -> str:
-        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+        raw_url = os.getenv("DATABASE_URL")
+        if raw_url:
+            if raw_url.startswith("postgres://"):
+                raw_url = raw_url.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif raw_url.startswith("postgresql://"):
+                raw_url = raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            if "ssl=" not in raw_url and "sslmode=" not in raw_url:
+                sep = "&" if "?" in raw_url else "?"
+                raw_url = f"{raw_url}{sep}ssl=require"
+            return raw_url
+
+        ssl_param = "?ssl=require" if self.host not in ("localhost", "127.0.0.1") else ""
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}{ssl_param}"
 
     @property
     def sync_url(self) -> str:
+        raw_url = os.getenv("DATABASE_URL")
+        if raw_url:
+            if raw_url.startswith("postgresql+asyncpg://"):
+                return raw_url.replace("postgresql+asyncpg://", "postgresql://", 1)
+            return raw_url
         return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
 
 
