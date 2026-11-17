@@ -2,41 +2,34 @@
 
 /**
  * CipherVault — Share Modal
- * Generates a secure shareable link with password in URL fragment (never sent to server).
- * Includes QR code for easy mobile sharing.
+ * Generates a clean shareable link and QR code.
+ * The recipient MUST enter the encryption password to decrypt and view the file.
  */
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
+import toast from 'react-hot-toast';
 import {
   HiOutlineX, HiOutlineClipboard, HiOutlineCheck,
-  HiOutlineShare, HiOutlineQrcode, HiOutlineShieldCheck,
-  HiOutlineDownload
+  HiOutlineShare, HiOutlineShieldCheck,
+  HiOutlineDownload, HiOutlineLockClosed
 } from 'react-icons/hi';
 
 export default function ShareModal({ doc, onClose }) {
-  const [password, setPassword] = useState('');
-  const [shareLink, setShareLink] = useState('');
   const [copied, setCopied] = useState(false);
-  const [showQR, setShowQR] = useState(false);
 
-  const generateLink = () => {
-    if (!password) return;
-    // Password goes in URL fragment (#) — NEVER sent to server
+  const shareLink = useMemo(() => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    const fragment = btoa(JSON.stringify({ pwd: password, docId: doc.id }));
-    const link = `${baseUrl}/share/${doc.id}#${fragment}`;
-    setShareLink(link);
-    setShowQR(true);
-  };
+    return `${baseUrl}/share/${doc.id}`;
+  }, [doc.id]);
 
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareLink);
       setCopied(true);
+      toast.success('Share link copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const ta = document.createElement('textarea');
       ta.value = shareLink;
       document.body.appendChild(ta);
@@ -44,6 +37,7 @@ export default function ShareModal({ doc, onClose }) {
       document.execCommand('copy');
       document.body.removeChild(ta);
       setCopied(true);
+      toast.success('Share link copied!');
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -103,89 +97,54 @@ export default function ShareModal({ doc, onClose }) {
             </div>
           </div>
 
-          {!shareLink ? (
-            // Step 1: Enter password
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
-                  File Encryption Password
-                </label>
+          <div className="space-y-4">
+            {/* Password Protection Notice */}
+            <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.25)' }}>
+              <HiOutlineLockClosed className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--brand-primary)' }} />
+              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                <strong>Password Protected Link:</strong> Anyone opening this link or scanning the QR code will be required to enter the file's password to decrypt it.
+              </div>
+            </div>
+
+            {/* Link Input & Copy */}
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Shareable Link</label>
+              <div className="flex gap-2">
                 <input
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && generateLink()}
-                  placeholder="Enter the password used to encrypt this file"
-                  className="input-field"
-                  autoFocus
+                  value={shareLink}
+                  readOnly
+                  className="input-field text-xs flex-1 select-all"
+                  style={{ fontFamily: 'monospace' }}
+                />
+                <button onClick={copyLink} className="btn-primary px-3 py-2 gap-1 text-xs flex-shrink-0">
+                  {copied ? <HiOutlineCheck className="w-4 h-4" /> : <HiOutlineClipboard className="w-4 h-4" />}
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            </div>
+
+            {/* QR Code */}
+            <div className="flex flex-col items-center pt-2">
+              <div className="p-4 rounded-xl bg-white shadow-md">
+                <QRCodeSVG
+                  id="share-qr-code"
+                  value={shareLink}
+                  size={190}
+                  level="M"
+                  fgColor="#1e1b4b"
+                  bgColor="#ffffff"
                 />
               </div>
-
-              <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)' }}>
-                <HiOutlineShieldCheck className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: 'var(--brand-light)' }} />
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  The password is embedded in the URL fragment (#) and <strong>never sent to our servers</strong>. Recipients decrypt in their browser.
-                </p>
-              </div>
-
-              <button
-                onClick={generateLink}
-                disabled={!password}
-                className="btn-primary w-full py-3 gap-2"
-              >
-                <HiOutlineShare className="w-4 h-4" />
-                Generate Share Link
+              <button onClick={downloadQR} className="mt-3 text-xs flex items-center gap-1.5 hover:underline" style={{ color: 'var(--brand-light)' }}>
+                <HiOutlineDownload className="w-3.5 h-3.5" />
+                Download QR Code Image
               </button>
             </div>
-          ) : (
-            // Step 2: Share link + QR
-            <div className="space-y-4">
-              {/* Link */}
-              <div>
-                <label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Share Link</label>
-                <div className="flex gap-2">
-                  <input
-                    value={shareLink}
-                    readOnly
-                    className="input-field text-xs flex-1"
-                    style={{ fontFamily: 'monospace' }}
-                  />
-                  <button onClick={copyLink} className="btn-primary px-3 py-2 gap-1 text-xs flex-shrink-0">
-                    {copied ? <HiOutlineCheck className="w-4 h-4" /> : <HiOutlineClipboard className="w-4 h-4" />}
-                    {copied ? 'Copied!' : 'Copy'}
-                  </button>
-                </div>
-              </div>
 
-              {/* QR Code */}
-              {showQR && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="flex flex-col items-center"
-                >
-                  <div className="p-4 rounded-xl bg-white">
-                    <QRCodeSVG
-                      id="share-qr-code"
-                      value={shareLink}
-                      size={200}
-                      level="M"
-                      fgColor="#1e1b4b"
-                      bgColor="#ffffff"
-                    />
-                  </div>
-                  <button onClick={downloadQR} className="mt-3 text-xs flex items-center gap-1" style={{ color: 'var(--brand-light)' }}>
-                    <HiOutlineDownload className="w-3 h-3" />
-                    Download QR Code
-                  </button>
-                </motion.div>
-              )}
-
-              <button onClick={onClose} className="btn-secondary w-full py-2.5 text-sm">
-                Done
-              </button>
-            </div>
-          )}
+            <button onClick={onClose} className="btn-secondary w-full py-2.5 text-sm mt-2">
+              Done
+            </button>
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>

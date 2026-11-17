@@ -15,7 +15,7 @@ from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 sys.path.insert(0, "/app")  # Docker fallback
 
-from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form, Request
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from contextlib import asynccontextmanager
@@ -208,6 +208,87 @@ async def list_documents(request: Request, db: AsyncSession = Depends(get_db)):
         }
         for d in docs
     ]
+
+
+@app.get("/documents/shared/{document_id}")
+async def get_shared_document(document_id: str, db: AsyncSession = Depends(get_db)):
+    """Public endpoint to get metadata of a shared document (no auth required)."""
+    result = await db.execute(
+        select(Document).where(Document.id == document_id)
+    )
+    doc = result.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if doc.status != "active":
+        raise HTTPException(status_code=410, detail="Document has expired or been deleted")
+
+    if doc.expiry_time and doc.expiry_time.replace(tzinfo=None) < datetime.utcnow():
+        doc.status = "expired"
+        await db.flush()
+        raise HTTPException(status_code=410, detail="Document has expired")
+
+    return {
+        "id": str(doc.id),
+        "filename": doc.original_filename,
+        "file_size": doc.file_size,
+        "mime_type": doc.mime_type,
+        "file_hash": doc.file_hash,
+        "salt": doc.salt,
+        "iv": doc.iv,
+        "iterations": 600000,
+        "upload_time": doc.upload_time.isoformat() if doc.upload_time else "",
+        "expiry_time": doc.expiry_time.isoformat() if doc.expiry_time else "",
+        "status": doc.status,
+        "encryption_algorithm": doc.encryption_algorithm,
+    }
+
+
+@app.get("/documents/shared/{document_id}/download")
+async def download_shared_document(document_id: str, db: AsyncSession = Depends(get_db)):
+    """Public endpoint to download encrypted file content for a shared link (no auth required)."""
+    result = await db.execute(
+        select(Document).where(Document.id == document_id)
+    )
+    doc = result.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if doc.status != "active":
+        raise HTTPException(status_code=410, detail="Document has expired or been deleted")
+
+    if doc.expiry_time and doc.expiry_time.replace(tzinfo=None) < datetime.utcnow():
+        doc.status = "expired"
+        await db.flush()
+        raise HTTPException(status_code=410, detail="Document has expired")
+
+    file_path = os.path.join(UPLOAD_DIR, doc.stored_filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found on storage")
+
+    with open(file_path, "rb") as f:
+        content = f.read()
+
+    current_hash = hashlib.sha256(content).hexdigest()
+    if current_hash != doc.file_hash:
+        doc.status = "tampered"
+        await db.flush()
+        logger.critical(f"TAMPERING DETECTED: Shared document {document_id}")
+        raise HTTPException(status_code=409, detail="File integrity check failed")
+
+    doc.download_count += 1
+    await db.flush()
+
+    return Response(
+        content=content,
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{doc.original_filename}"',
+            "X-File-Hash": doc.file_hash or "",
+            "X-Salt": doc.salt or "",
+            "X-IV": doc.iv or "",
+        },
+    )
 
 
 @app.get("/documents/{document_id}")

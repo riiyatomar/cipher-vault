@@ -151,6 +151,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # ── Prometheus ─────────────────────────────────────────────────────────────
@@ -188,7 +189,7 @@ async def gateway_middleware(request: Request, call_next):
     path = request.url.path
 
     # Skip public routes and metrics
-    if path in PUBLIC_ROUTES or path.startswith("/metrics"):
+    if path in PUBLIC_ROUTES or path.startswith("/metrics") or path.startswith("/api/documents/shared/"):
         return await call_next(request)
 
     # Rate limiting
@@ -200,7 +201,7 @@ async def gateway_middleware(request: Request, call_next):
         )
 
     # JWT validation for protected /api/ routes
-    if path.startswith("/api/") and path not in PUBLIC_ROUTES:
+    if path.startswith("/api/") and path not in PUBLIC_ROUTES and not path.startswith("/api/documents/shared/"):
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             return JSONResponse(

@@ -119,7 +119,7 @@ async def gateway_middleware(request: Request, call_next):
         return await call_next(request)
 
     # Skip public routes
-    if path in PUBLIC_ROUTES or path.startswith("/metrics"):
+    if path in PUBLIC_ROUTES or path.startswith("/metrics") or path.startswith("/api/documents/shared/"):
         return await call_next(request)
 
     # Rate limiting
@@ -128,7 +128,7 @@ async def gateway_middleware(request: Request, call_next):
         raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again later.")
 
     # JWT validation for protected routes
-    if path.startswith("/api/") and path not in PUBLIC_ROUTES:
+    if path.startswith("/api/") and path not in PUBLIC_ROUTES and not path.startswith("/api/documents/shared/"):
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Missing authentication token")

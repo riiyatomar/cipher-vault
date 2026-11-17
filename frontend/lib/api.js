@@ -77,6 +77,8 @@ export const documentsAPI = {
   get: (id) => api.get(`/documents/${id}`),
   download: (id) => api.get(`/documents/${id}/download`, { responseType: 'arraybuffer' }),
   delete: (id) => api.delete(`/documents/${id}`),
+  getShared: (id) => api.get(`/documents/shared/${id}`),
+  downloadShared: (id) => api.get(`/documents/shared/${id}/download`, { responseType: 'arraybuffer' }),
 };
 
 export const encryptionAPI = {
