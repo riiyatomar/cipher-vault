@@ -102,7 +102,7 @@ export default function ShareModal({ doc, onClose }) {
             <div className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.25)' }}>
               <HiOutlineLockClosed className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--brand-primary)' }} />
               <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                <strong>Password Protected Link:</strong> Anyone opening this link or scanning the QR code will be required to enter the file's password to decrypt it.
+                <strong>Password Protected Link:</strong> Anyone opening this link or scanning the QR code will be required to enter the file&apos;s password to decrypt it.
               </div>
             </div>
 
