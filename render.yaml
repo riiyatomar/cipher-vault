@@ -13,7 +13,6 @@ services:
     plan: free               # Change to "starter" ($7/mo) for always-on
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /api/health
     envVars:
       # Database (auto-populated from Render PostgreSQL)
       - key: DATABASE_URL
@@ -57,7 +56,7 @@ services:
 
       # CORS — set to your Vercel frontend URL after deploying
       - key: CORS_ORIGINS
-        value: "https://your-app.vercel.app,http://localhost:3000"
+        value: "https://cipher-vault-git-main-xyz-4b4a.vercel.app,https://cipher-vault-k0mcg61yk-xyz-4b4a.vercel.app,http://localhost:3000"
 
       # File settings (stored in container filesystem on free tier)
       - key: UPLOAD_DIR
