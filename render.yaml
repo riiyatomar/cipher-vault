@@ -62,9 +62,9 @@ services:
       - key: CORS_ORIGINS
         value: "https://your-app.vercel.app,http://localhost:3000"
 
-      # File settings
+      # File settings (stored in container filesystem on free tier)
       - key: UPLOAD_DIR
-        value: /opt/render/project/storage/uploads
+        value: ./storage/uploads
       - key: MAX_FILE_SIZE_MB
         value: "20"
       - key: FILE_EXPIRY_HOURS
@@ -77,11 +77,6 @@ services:
       # Python path for shared modules
       - key: PYTHONPATH
         value: /opt/render/project/src/services
-
-    disk:
-      name: ciphervault-storage
-      mountPath: /opt/render/project/storage
-      sizeGB: 1               # Adjust based on expected upload volume
 
   # ── PostgreSQL Database ──────────────────────────────────────────────────
 databases:
